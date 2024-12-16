@@ -1,0 +1,36 @@
+DIR=/cygdrive/c/Users/gmadireddy/CalculiX/Windows/ccx_prool
+DIR2=/cygdrive/c/Users/gmadireddy/CalculiX
+
+CFLAGS = -Wall -O2 -fopenmp -I $(DIR)/SPOOLES.2.2 -DARCH="Linux" -DSPOOLES -DARPACK -DMATRIXSTORAGE -DUSE_MT=1 
+FFLAGS = -Wall -O2 -fopenmp 
+
+CC=cc
+FC=gfortran
+
+.c.o :
+	$(CC) $(CFLAGS) -c $<
+.f.o :
+	$(FC) $(FFLAGS) -c $<
+
+include Makefile.inc
+
+SCCXMAIN = ccx_2.21.c
+
+OCCXF = $(SCCXF:.f=.o)
+OCCXC = $(SCCXC:.c=.o)
+OCCXMAIN = $(SCCXMAIN:.c=.o)
+
+
+LIBS = \
+       $(DIR)/SPOOLES.2.2/MT/src/spoolesMT.a \
+       $(DIR)/SPOOLES.2.2/spooles.a \
+       $(DIR)/ARPACK/libarpack_INTEL.a \
+       -lpthread -lm \
+	   $(DIR2)/Charlie/abqsub.dll
+	   
+ccx_2.21_MT.exe: $(OCCXMAIN) ccx_2.21_MT.a  $(LIBS)
+	./date.pl; $(CC) $(CFLAGS) -c ccx_2.21.c; $(FC) -fopenmp -Wall -O2 -o $@ $(OCCXMAIN) ccx_2.21_MT.a $(LIBS)
+
+ccx_2.21_MT.a: $(OCCXF) $(OCCXC)
+	ar vr $@ $?
+                                                                               
